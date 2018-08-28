@@ -6,7 +6,7 @@ class Operadores():
         for i in range(0, len(binario)-1):
             v1 = binario[i]
             v2 = binario[i+1]
-            print(v1, ' = ', v2)
+            # print(v1, ' = ', v2)
             if(v1 == v2):
                 gray += '0'
             else:
@@ -20,7 +20,7 @@ class Operadores():
         for i in range(0, len(gray)-1):
             v1 = binario[i]
             v2 = gray[i+1]
-            print(v1, ' = ', v2)
+            # print(v1, ' = ', v2)
             if(v1 == v2):
                 binario += '0'
             else:
