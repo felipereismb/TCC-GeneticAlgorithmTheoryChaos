@@ -1,32 +1,29 @@
 import random
-from cromossomo import Cromossomo
-from operadores import Operadores
+from GATC_CART.cromossomo import Cromossomo
+from GATC_CART.operadores import Operadores
 
 class GATC():
     cromossomos = []
     operador = Operadores()
 
-    def __init__(self,tamanhoPopulacaoInicial):
-        self.inicializarVariaveis(tamanhoPopulacaoInicial)
+    populacao = []
+    algoritmoEscolhido = 0
+
+    def __init__(self,tamanhoPopulacaoInicial, populacaoInicial, algoritmo):
+        self.inicializarVariaveis(tamanhoPopulacaoInicial,populacaoInicial, algoritmo)
         self.ordenarPopulacao()
 
-    def inicializarVariaveis(self,tamanhoPopulacaoInicial):
+    def inicializarVariaveis(self,tamanhoPopulacaoInicial,populacaoInicial, algoritmo):
+        self.populacao = populacaoInicial
+        self.algoritmoEscolhido = algoritmo
         self.inicializarPopulacao(tamanhoPopulacaoInicial)
 
     def inicializarPopulacao(self, tamanhoPopulacaoInicial):
-        individuoDefault = '0000000000000000000000000000'
-        mascara = self.gerarUmIndividuo()
-        lambyda = self.gerarLambyda()
 
-        self.cromossomos.append(Cromossomo(individuoDefault, lambyda, mascara))
-
-        for i in range(0, (tamanhoPopulacaoInicial - 1)):
-            individuo = self.gerarUmIndividuo()
+        for individuo in self.populacao:
             mascara = self.gerarUmIndividuo()
             lambyda = self.gerarLambyda()
-
-            novo = Cromossomo(individuo, lambyda, mascara)
-            self.cromossomos.append(novo)
+            self.cromossomos.append(Cromossomo(individuo, lambyda, mascara, self.algoritmoEscolhido ))
 
     def imprimirPopulacao(self):
         print("\n\n")
@@ -143,15 +140,15 @@ class GATC():
 
         novaMascara = self.operacao(mascaraPai1, lambydaPai1)
 
-        novo1 = Cromossomo(indNovo1,lambydaPai1,novaMascara)
-        novo2 = Cromossomo(indNovo2,lambydaPai1,novaMascara)
+        novo1 = Cromossomo(indNovo1,lambydaPai1,novaMascara, self.algoritmoEscolhido)
+        novo2 = Cromossomo(indNovo2,lambydaPai1,novaMascara, self.algoritmoEscolhido)
         return novo1, novo2
 
     def operacao(self, mascara, lambyda):
         lambBin         = self.operador.grayToBinary(lambyda)
         lambDecimal     = self.operador.binarioToDecimal(lambBin)
         lambNormalizado = lambDecimal * (4/15)
-        print("Lamb normalizado: ",lambNormalizado)
+        # print("Lamb normalizado: ",lambNormalizado)
         
         novaMascara = ''
 
@@ -268,21 +265,29 @@ class GATC():
             str1 = ''.join(list1)
             ind = str1
 
-        self.cromossomos.append(Cromossomo(ind,lamb,masc))
+        self.cromossomos.append(Cromossomo(ind,lamb,masc, self.algoritmoEscolhido))
         self.ordenarPopulacao()
         self.cromossomos = self.cromossomos[:-1]
 
     def execucao(self):
         pai1, pai2      = self.selecaoPaisRandom()
-        novo1, novo2    = self.cruzamento(pai1,pai2) 
+        pai3, pai4      = self.selecaoPaisElitismo()
 
+        novo1, novo2    = self.cruzamento(pai1,pai2) 
+        novo3, novo4    = self.cruzamento(pai3,pai4) 
+        novo5, novo6    = self.cruzamento(pai1,pai4) 
+        
         self.cromossomos.append(novo1)
         self.cromossomos.append(novo2)
+        self.cromossomos.append(novo3)
+        self.cromossomos.append(novo4)
+        self.cromossomos.append(novo5)
+        self.cromossomos.append(novo6)
         
         self.mutacao()
 
         self.ordenarPopulacao()
-        self.cromossomos = self.cromossomos[:-2]
+        self.cromossomos = self.cromossomos[:-6]
 
     ###################################################################33
     # Gets para realizar cruzamento e aplicação da função caótica

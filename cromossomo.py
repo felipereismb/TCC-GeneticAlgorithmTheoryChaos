@@ -12,11 +12,12 @@
 # presort                   :  0 = True || 1 = False
 
 # Imports necessários
-from StellPlatesDataset import StellPlatesDataset
+from GATC_CART.StellPlatesDataset import StellPlatesDataset
 from sklearn import tree, cross_validation, datasets
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split, cross_val_predict
 
+import pandas as pd
 
 class Cromossomo():
 
@@ -28,19 +29,22 @@ class Cromossomo():
     acuracia = 0
     size = 0
 
+    algoritmoEscolhido = 0
+
     #######################################
     # CONSTRUTORES
 
-    def __init__(self, ind, lambyda, mascara):
-        self.inicializarVariaveis(ind, lambyda, mascara)
+    def __init__(self, ind, lambyda, mascara, algoritmo):
+        self.inicializarVariaveis(ind, lambyda, mascara, algoritmo)
 
     #######################################
     # INICIALIZADORES
 
-    def inicializarVariaveis(self, ind, lamb, masc):
+    def inicializarVariaveis(self, ind, lamb, masc,algoritmo):
         self.individuo = ind
         self.lambyda = lamb
         self.mascara = masc
+        self.algoritmoEscolhido = algoritmo
         self.calcularFitness()
 
     #######################################
@@ -129,11 +133,36 @@ class Cromossomo():
     # A proposta de otimização é:
     # Obter maior valor de Acurácia e/ou Diminuir o tamanho da árvore final gerada
     def calcularFitness(self):
-        dataset = StellPlatesDataset  # Carrega o dataset a ser usado nos testes
-        # dataset = datasets.load_iris()
-        # dataset = datasets.load_wine()
-        # dataset = datasets.load_digits()
-        # dataset = datasets.load_breast_cancer()
+        if(self.algoritmoEscolhido == 0):
+            dataset = StellPlatesDataset()
+            target = dataset.target
+            data = dataset.data   
+        elif (self.algoritmoEscolhido  == 1):
+            dataset = datasets.load_iris()
+            target = dataset.target
+            data = dataset.data  
+        elif (self.algoritmoEscolhido  == 2):
+            dataset = datasets.load_wine()
+            target = dataset.target
+            data = dataset.data  
+        elif (self.algoritmoEscolhido  == 3):
+            dataset = datasets.load_digits()
+            target = dataset.target
+            data = dataset.data  
+        elif (self.algoritmoEscolhido  == 4):
+            dataset = datasets.load_breast_cancer()
+            target = dataset.target
+            data = dataset.data
+        elif (self.algoritmoEscolhido  == 5):
+            data = pd.read_csv('BaseDeDados/isolet.csv', sep=',')
+            list = ['classe']
+            target = data.classe
+            data = data.drop(list,axis = 1)
+        else :
+            data = pd.read_csv('BaseDeDados/madelon.csv', sep=',')
+            list = ['classe']
+            target = data.classe
+            data = data.drop(list,axis = 1)
 
         # Carrega o algoritmo de ML que será utilizado (No caso, árvore de decisão = DecisionTreeClassifier() )
         # AQUI, nós passaremos os parâmetros, pois é aqui que usamos o Cromossomo, para poder testa-lo e obter calcular seu fitnes
@@ -150,12 +179,14 @@ class Cromossomo():
                                      min_samples_leaf=min_sl, min_weight_fraction_leaf=min_wfleaf, presort=pre, random_state=0)
 
         # Chama a função fit e realiza a montagem da árvore
-        scores = cross_validation.cross_val_score(
-            clf, dataset.data, dataset.target, cv=10)
+        scores = cross_validation.cross_val_score(clf, data, target, cv=10, scoring='accuracy')
         self.acuracia = round(100*scores.mean(), 2)
+        clf = clf.fit(data, target)
+
+        # scores = cross_validation.cross_val_score(clf, iris.data, iris.target, cv=5, scoring='f1')
+        # self.acuracia = accuracy_score(Y_test, clf.predict(X_test)) * 100
 
         # Retorna o tamanho da árvore
-        clf = clf.fit(dataset.data, dataset.target)
         treeObj = clf.tree_
         self.size = treeObj.node_count
 
